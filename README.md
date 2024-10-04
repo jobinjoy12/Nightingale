@@ -1,6 +1,10 @@
 # Nightingale - Nursing Assistance System
 
-Nightingale is a nursing assistance system designed to help healthcare professionals monitor patients' vital signs remotely using IoT devices. It is particularly useful in quarantine or isolation scenarios where direct contact is not possible, allowing nurses to monitor the condition of patients from a distance.
+Nightingale is an advanced nursing assistance system designed to help healthcare professionals monitor patients' vital signs remotely using IoT devices. The system enables **contactless monitoring**, which is crucial in scenarios where direct contact with patients is limited or dangerous, such as during pandemics, quarantines, or when caring for immunocompromised individuals. By reducing the need for physical interaction, Nightingale protects both patients and healthcare workers while ensuring that critical health data is continuously monitored.
+
+## Importance of Contactless Monitoring
+
+In modern healthcare, the ability to monitor patients without direct physical interaction has become increasingly important. Contactless monitoring not only **reduces the risk of infection transmission** but also enables healthcare professionals to care for more patients simultaneously. Nightingale allows nurses to keep track of patients' vital signs in real-time, ensuring that immediate action can be taken when necessary. This system is particularly useful in isolation wards, emergency rooms, and long-term care facilities, where constant patient monitoring is required but physical contact must be minimized.
 
 ## Features
 
@@ -20,11 +24,12 @@ Nightingale is a nursing assistance system designed to help healthcare professio
 
 - **ESP32 Wi-Fi Module**: All sensors are connected to an ESP32 module, which transmits the data to a common web server.
 - **Web Server**: Nurses access the web server to view live data from all sensors, allowing them to monitor patients in real time.
-  
+
 ## Use Cases
 
 - **Quarantine and Isolation**: The Nightingale system is especially beneficial in scenarios where patients are in isolation due to contagious diseases. It minimizes the need for physical contact while ensuring the patients' health is closely monitored.
-- **Remote Monitoring**: Allows for the continuous assessment of critical vitals like heart rate, body temperature, and fall detection without the need for constant bedside monitoring.
+- **Remote Monitoring**: Enables continuous assessment of critical vitals like heart rate, body temperature, and fall detection without the need for constant bedside monitoring.
+- **Reduced Risk of Transmission**: In cases of highly infectious diseases, Nightingale significantly reduces the risk of spreading infections between patients and healthcare staff by allowing nurses to remotely monitor patients.
 
 ## Hardware Components
 

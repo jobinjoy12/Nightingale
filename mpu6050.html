@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fall Detection Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background-color: #f4f4f9;
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 20px;
+        }
+
+        .data-container {
+            margin: 20px auto;
+            width: 80%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+
+        .chart-container {
+            margin: 30px auto;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>MPU6050 Fall Detection Data</h1>
+
+    <div class="data-container">
+        <p id="mpu_data">Loading...</p>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="mpuChart"></canvas>
+    </div>
+
+    <div class="button-container">
+        <button onclick="toggleDataUpdate()">Start/Stop Data</button>
+        <button onclick="resetChart()">Reset Chart</button>
+    </div>
+
+    <script>
+        let updateInterval;
+        let chartData = {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Acc X',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1
+                },
+                {
+                    label: 'Acc Y',
+                    data: [],
+                    borderColor: 'rgb(54, 162, 235)',
+                    tension: 0.1
+                },
+                {
+                    label: 'Acc Z',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }
+            ]
+        };
+
+        const ctx = document.getElementById('mpuChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                animation: {
+                    duration: 500,
+                    easing: 'easeOutQuart'
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 20  // You can adjust based on expected acceleration values
+                    }
+                }
+            }
+        });
+
+        // Function to update MPU6050 data
+        function fetchMPUData() {
+            fetch('/get_mpu_data')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("mpu_data").innerText = 
+                    `Acc X: ${data.acc_x}, Acc Y: ${data.acc_y}, Acc Z: ${data.acc_z}`;
+                
+                // Add data to chart
+                const currentTime = new Date().toLocaleTimeString();
+                chartData.labels.push(currentTime);
+                chartData.datasets[0].data.push(data.acc_x);
+                chartData.datasets[1].data.push(data.acc_y);
+                chartData.datasets[2].data.push(data.acc_z);
+                
+                // Remove old data to keep chart manageable
+                if (chartData.labels.length > 10) {
+                    chartData.labels.shift();
+                    chartData.datasets[0].data.shift();
+                    chartData.datasets[1].data.shift();
+                    chartData.datasets[2].data.shift();
+                }
+                
+                chart.update();
+            });
+        }
+
+        // Function to start/stop data updates
+        function toggleDataUpdate() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            } else {
+                updateInterval = setInterval(fetchMPUData, 2000);
+            }
+        }
+
+        // Function to reset chart
+        function resetChart() {
+            chartData.labels = [];
+            chartData.datasets[0].data = [];
+            chartData.datasets[1].data = [];
+            chartData.datasets[2].data = [];
+            chart.update();
+        }
+
+        // Start data fetching automatically on page load
+        toggleDataUpdate();
+    </script>
+</body>
+</html>

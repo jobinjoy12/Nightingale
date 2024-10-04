@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nightingale Sensor Dashboard</title>
+    <style>
+        :root {
+            --primary-dark: #1e3a5f;
+            --primary-light: #3498db;
+            --accent: #e74c3c;
+            --text-light: #ecf0f1;
+            --text-dark: #2c3e50;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: linear-gradient(to right, var(--primary-dark), var(--primary-light));
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--text-light);
+            margin: 0;
+            font-size: 2.5em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .team-info {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        .team-members {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .team-member {
+            background: linear-gradient(45deg, var(--primary-dark), var(--primary-light));
+            padding: 12px 20px;
+            border-radius: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .team-member:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .slider {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        .slide {
+            display: none;
+            padding: 20px;
+            text-align: center;
+        }
+        .slide.active {
+            display: block;
+        }
+        .sensor-button {
+            background: linear-gradient(45deg, var(--primary-dark), var(--primary-light));
+            border: none;
+            color: var(--text-light);
+            padding: 15px 25px;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            font-size: 18px;
+            margin: 15px 0;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .sensor-button:hover {
+            background: linear-gradient(45deg, var(--primary-light), var(--accent));
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .sensor-button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .sensor-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .sensor-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Nightingale Sensor Dashboard</h1>
+    </div>
+
+    <div class="container">
+        <div class="team-info">
+            <h2>Team Nightingale</h2>
+            <div class="team-members">
+                <div class="team-member">Jobinjoy Ponnappal</div>
+                <div class="team-member">Kavya Raj P</div>
+                <div class="team-member">Krishna Sagar P</div>
+                <div class="team-member">Joel M Jaison</div>
+            </div>
+        </div>
+
+        <div class="slider">
+            <div class="slide active">
+                <h3>Fall Detection</h3>
+                <p>Our advanced fall detection system uses accelerometers and gyroscopes to detect sudden movements indicative of falls.</p>
+            </div>
+            <div class="slide">
+                <h3>Temperature Monitoring</h3>
+                <p>Continuous temperature monitoring helps detect fever or hypothermia, crucial for early intervention in health issues.</p>
+            </div>
+            <div class="slide">
+                <h3>Pulse Monitoring</h3>
+                <p>Real-time pulse monitoring provides insights into heart health and can alert to potential cardiac issues.</p>
+            </div>
+        </div>
+        <button class="sensor-button" onclick="location.href='/mpu6050'">Fall Detection Data</button>
+        <button class="sensor-button" onclick="location.href='/temperature'">Temperature Data</button>
+        <button class="sensor-button" onclick="location.href='/pulse'">Pulse Data</button>
+    </div>
+
+    <script>
+        function openPage(url) {
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>

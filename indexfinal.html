@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Data Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        header {
+            background-color: #007bff;
+            padding: 20px;
+            color: #fff;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        header img {
+            width: 50px;
+            vertical-align: middle;
+        }
+
+        header h1 {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 32px;
+            vertical-align: middle;
+        }
+
+        main {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 40px 20px;
+        }
+
+        #patient-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            z-index: 1000;
+        }
+
+        #patient-popup h2 {
+            margin-top: 0;
+        }
+
+        .sensor-container {
+            width: 28%;
+            min-width: 300px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: transform 0.3s;
+        }
+
+        .close-popup {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .close-popup:hover {
+            background-color: #0056b3;
+        }
+
+        .sensor-container:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+
+        .chart-container {
+            margin: 15px auto;
+        }
+
+        .chart-container canvas {
+            width: 100% !important;
+            height: 250px !important;
+        }
+
+        footer {
+            background-color: #007bff;
+            padding: 20px;
+            color: #fff;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://img.icons8.com/color/96/000000/heartbeat.png" alt="Dashboard Logo">
+        <h1>Sensor Data Dashboard</h1>
+    </header>
+
+    <main>
+        <!-- Pulse Sensor Data -->
+        <div class="sensor-container">
+            <h2>Pulse Sensor Data</h2>
+            <p id="pulse_data">Loading...</p>
+            <div class="chart-container">
+                <canvas id="pulseChart"></canvas>
+            </div>
+        </div>
+
+        <!-- MPU6050 Data -->
+        <div class="sensor-container">
+            <h2>MPU6050 Data (Fall Detection)</h2>
+            <p id="mpu_data">Loading...</p>
+            <div class="chart-container">
+                <canvas id="mpuChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Temperature Data -->
+        <div class="sensor-container">
+            <h2>Temperature Sensor Data</h2>
+            <p id="temperature_data">Loading...</p>
+            <div class="chart-container">
+                <canvas id="temperatureChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <div id="patient-popup">
+        <h2>Patient Information</h2>
+        <p id="patient_name">Name: </p>
+        <p id="room_no">Room No: </p>
+        <p id="popup_pulse_data">Pulse: </p>
+        <p id="popup_temperature_data">Temperature: </p>
+        <p id="popup_mpu_data">Fall Detection: </p>
+        <button class="close-popup" onclick="closePopup()">Close</button>
+    </div>
+
+    <audio id="alert-sound" src="/static/sounds/mixkit-interface-option-select-2573.mp3" preload="auto"></audio>
+
+    <footer>
+        <p>Sensor Data Dashboard &copy; 2024. All rights reserved.</p>
+    </footer>
+
+    <script>
+
+        // Function to open the pop-up
+        function openPopup(patientData) {
+            document.getElementById("patient_name").innerText = `Name: ${patientData.name}`;
+            document.getElementById("room_no").innerText = `Room No: ${patientData.room_no}`;
+            document.getElementById("popup_pulse_data").innerText = `Pulse: ${patientData.pulse}`;
+            document.getElementById("popup_temperature_data").innerText = `Temperature: ${patientData.temperature}`;
+            document.getElementById("popup_mpu_data").innerText = `Fall Detection: ${patientData.fall_status}`;
+            document.getElementById("patient-popup").style.display = "block";
+
+            document.getElementById("alert-sound").play();
+        }
+
+        // Function to close the pop-up
+        function closePopup() {
+            document.getElementById("patient-popup").style.display = "none";
+        }
+
+        function checkCriticalCondition(patientData) {
+            const pulse = parseFloat(patientData.pulse);
+            const temperature = parseFloat(patientData.temperature);
+            const fallStatus = patientData.fall_status;
+
+            return (
+                pulse < 60 || pulse > 99 ||
+                temperature < 33.5 || temperature > 37.2 ||
+                fallStatus === "Fall Detected"
+            );
+        }
+
+        function fetchAllData() {
+            fetch('/get_patient_data')
+            .then(response => response.json())
+            .then(data => {
+                // If critical conditions are met, show the pop-up
+                if (checkCriticalCondition(data)) {
+                    openPopup(data);
+                }
+            });
+        }
+
+        setInterval(fetchAllData, 5000);  // Check every 5 seconds for updates
+        // Pulse Sensor
+        let pulseChartData = {
+            labels: [],
+            datasets: [{
+                label: 'Pulse (bpm)',
+                data: [],
+                borderColor: '#ff6384',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                fill: true,
+                tension: 0.1
+            }]
+        };
+
+        const pulseCtx = document.getElementById('pulseChart').getContext('2d');
+        const pulseChart = new Chart(pulseCtx, {
+            type: 'line',
+            data: pulseChartData,
+            options: {
+                responsive: true,
+                animation: {
+                    duration: 500,
+                    easing: 'easeOutQuart'
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 200
+                    }
+                }
+            }
+        });
+
+        function fetchPulseData() {
+            fetch('/get_pulse_data')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("pulse_data").innerText = `Pulse: ${data.pulse} bpm`;
+
+                const currentTime = new Date().toLocaleTimeString();
+                pulseChartData.labels.push(currentTime);
+                pulseChartData.datasets[0].data.push(data.pulse);
+
+                if (pulseChartData.labels.length > 10) {
+                    pulseChartData.labels.shift();
+                    pulseChartData.datasets[0].data.shift();
+                }
+                pulseChart.update();
+            });
+        }
+        setInterval(fetchPulseData, 2000);
+
+        // MPU6050 Data
+        let mpuChartData = {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Acceleration X (g)',
+                    data: [],
+                    borderColor: '#36a2eb',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    fill: true,
+                    tension: 0.1
+                },
+                {
+                    label: 'Acceleration Y (g)',
+                    data: [],
+                    borderColor: '#ff9f40',
+                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                    fill: true,
+                    tension: 0.1
+                },
+                {
+                    label: 'Acceleration Z (g)',
+                    data: [],
+                    borderColor: '#4bc0c0',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true,
+                    tension: 0.1
+                }
+            ]
+        };
+
+        const mpuCtx = document.getElementById('mpuChart').getContext('2d');
+        const mpuChart = new Chart(mpuCtx, {
+            type: 'line',
+            data: mpuChartData,
+            options: {
+                responsive: true,
+                animation: {
+                    duration: 500,
+                    easing: 'easeOutQuart'
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 50
+                    }
+                }
+            }
+        });
+
+        function fetchMPUData() {
+            fetch('/get_mpu_data')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("mpu_data").innerText = 
+                    `Acc X: ${data.acc_x}, Acc Y: ${data.acc_y}, Acc Z: ${data.acc_z}`;
+
+                const currentTime = new Date().toLocaleTimeString();
+                mpuChartData.labels.push(currentTime);
+                mpuChartData.datasets[0].data.push(data.acc_x);
+                mpuChartData.datasets[1].data.push(data.acc_y);
+                mpuChartData.datasets[2].data.push(data.acc_z);
+
+                if (mpuChartData.labels.length > 10) {
+                    mpuChartData.labels.shift();
+                    mpuChartData.datasets[0].data.shift();
+                    mpuChartData.datasets[1].data.shift();
+                    mpuChartData.datasets[2].data.shift();
+                }
+                mpuChart.update();
+            });
+        }
+        setInterval(fetchMPUData, 2000);
+
+        // Temperature Data
+        let temperatureChartData = {
+            labels: [],
+            datasets: [{
+                label: 'Temperature (°C)',
+                data: [],
+                borderColor: '#ff9f40',
+                backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                fill: true,
+                tension: 0.1
+            }]
+        };
+
+        const temperatureCtx = document.getElementById('temperatureChart').getContext('2d');
+        const temperatureChart = new Chart(temperatureCtx, {
+            type: 'line',
+            data: temperatureChartData,
+            options: {
+                responsive: true,
+                animation: {
+                    duration: 500,
+                    easing: 'easeOutQuart'
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        min: 0,
+                        max: 50
+                    }
+                }
+            }
+        });
+
+        function fetchTemperatureData() {
+            fetch('/get_temperature_data')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("temperature_data").innerText = 
+                    `Temperature: ${data.temperature} °C`;
+
+                const currentTime = new Date().toLocaleTimeString();
+                temperatureChartData.labels.push(currentTime);
+                temperatureChartData.datasets[0].data.push(data.temperature);
+
+                if (temperatureChartData.labels.length > 10) {
+                    temperatureChartData.labels.shift();
+                    temperatureChartData.datasets[0].data.shift();
+                }
+                temperatureChart.update();
+            });
+        }
+        setInterval(fetchTemperatureData, 2000);
+    </script>
+</body>
+</html>
